@@ -6,23 +6,20 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.css') }}"/>
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}"/>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.js') }} "></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/calendar.js') }} "></script>
+	  	<script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }} "></script>
 	</head>
 	<body>
 	  	<div class="col-xs-3 container text-left left-info">
 	  		<div class="widget-clock">
 	  			<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
-	  			<span class="widget-clock">14:47</span>
+	  			<span class="clock"></span>
 	  		</div>
 	  		<div class="widget-calendar">
 		  		<h2>Calendar</h2>
-		  		<div class="list-group">
-		  			<div class="list-group-item-heading"><h3>Summary</h3></div>
-		  			<div class="list-group-item-text calendar-description"><h4>Description</h4></div>
-		  		</div>
-		  		<div class="list-group">
-		  			<div class="list-group-item-heading"><h3>Longer summary that will not fit in one line</h3></div>
-		  			<div class="list-group-item-text calendar-description"><h4>Longer description that will not fit within the contstrained div box</h4></div>
-		  		</div>
+		  		<div class="list-group event"></div>
+
 		  	</div>
 	  	</div>
 	  	<div class="col-xs-6 container text-center">
@@ -32,5 +29,9 @@
 	  		<h2>Weather</h2>
 	  		<p>Weather data</p>
 	  	</div>
+	  	<div id="debug">
+
+	  	</div>
+	  	<button type="button" class="btn btn-primary" id="update-cal">Update Calendar</button>
 	</body>
 </html>
