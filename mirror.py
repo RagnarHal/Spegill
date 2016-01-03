@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, abort, make_response
 from icalendar import Calendar, Event
 from datetime import datetime, date, time, timedelta
 import requests
@@ -15,13 +15,12 @@ def index():
 @app.route('/getevents')
 def getEvents():
 	url = request.args.get('url')
-	# TODO: Ew, this is ugly. Find a better way to catch parameter error
-	if url == None:
-		return render_template('error.html')
 	try:
 		calendar = getCalendar(url)
-	except ValueError, e:
-		return render_template('error.html')
+	except ValueError as e:
+		abort(400, e.message)
+	except requests.HTTPError as e:
+		abort(400, e.message)
 
 	events = []
 	for event in calendar.walk('VEVENT'):
@@ -46,15 +45,29 @@ def getEvents():
 
 	return jsonify(results=events)
 
+@app.errorhandler(404)
+def not_found(e):
+	resp = make_response(e.description, 404)
+	return resp
+
+@app.errorhandler(500)
+def server_error(e):
+	resp = make_response(e.description, 500)
+	return resp
+
 # Fetches calendar from the given url and returns it as an icalendar object
 def getCalendar(url):
-	# TODO: Error handling: What if the response status is not 200?
-	response = requests.get(url)
-	if response.status_code == 200:
+	try:
+		response = requests.get(url)
+	except requests.HTTPError:
+		raise requests.HTTPError("No URL schema supplied. Perhaps you meant http://" + url + "?")
+
+	try:
 		calendar = Calendar.from_ical(response.content)
-		return calendar
-	else:
-		return Calendar.from_ical(response.content)
+	except ValueError:
+		raise ValueError("Not a valid ical calendar.")
+
+	return calendar
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
