@@ -38,21 +38,23 @@ function update_weather() {
 	// http://api.openweathermap.org/data/2.5/weather?id=6692263&appid=2de143494c0b295cca9337e1e96b00e0
 	// Forecast:
 	// http://api.openweathermap.org/data/2.5/forecast?id=6692263&appid=2de143494c0b295cca9337e1e96b00e0
-	var url = 'http://api.openweathermap.org/data/2.5/weather?id=6692263&appid=2de143494c0b295cca9337e1e96b00e0'
+	var current = 'http://api.openweathermap.org/data/2.5/weather?id=3413829&appid=2de143494c0b295cca9337e1e96b00e0'
+	var forecast = 'http://api.openweathermap.org/data/2.5/forecast?id=3413829&appid=2de143494c0b295cca9337e1e96b00e0'
+	console.log(current)
+	console.log(forecast)
 
-	$.get("http://127.0.0.1:5000/weather", {url : url}, function(data) {
+	$.get("http://127.0.0.1:5000/weather", {'current' : encodeURI(current), 'forecast' : encodeURI(forecast), 'dbg' : 'true'}, function(data) {
 		console.log("Got response from Weather API");
 		$(".widget-weather-error").hide();
 		var weather = data.results;
 		console.log(data.results);
 		if(weather.length == 0) $(".widget-weather").text("No weather :(");
-		console.log(weather.dt);
 		var date = new Date(weather.dt*1000)
 		console.log(date);
 		
 		$("#weather-calc-date").text(monthNames[date.getMonth()] + " " + date.getDate() + " " + date.getFullYear());
 		$("#weather-calc-time").text(('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2));
-		$("#weather-temp").text(weather.main.temp - 273.15 + "°C");
+		$("#weather-temp").text(+(Math.round(weather.main.temp - 273.15 + "e+1") + "e-1") + "°C");
 		$("#weather-main").text(weather.weather.main);
 		$("#weather-desc").text(weather.weather[0].description);
 		$("#weather-windspeed").text(weather.wind.speed + " m/s");
