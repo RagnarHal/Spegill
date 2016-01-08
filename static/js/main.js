@@ -43,7 +43,7 @@ function update_weather() {
 	console.log(current)
 	console.log(forecast)
 
-	$.get("http://127.0.0.1:5000/weather", {'current' : encodeURI(current), 'forecast' : encodeURI(forecast), 'dbg' : 'true'}, function(data) {
+	$.get("http://127.0.0.1:5000/weather", {'current' : encodeURI(current), 'forecast' : encodeURI(forecast), 'dbg' : 'false'}, function(data) {
 		console.log("Got response from Weather API");
 		$(".widget-weather-error").hide();
 		var weather = data.results;
