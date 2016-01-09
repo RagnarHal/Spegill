@@ -77,7 +77,7 @@ def get_events():
 
 @app.route('/weather')
 # Get the current weather and the forecast from different APIs.
-# Combine the results into one single object, json formed
+# Combine the results into one single json object
 def get_weather():
 	logger = logging.getLogger('mirror')
 	logger.debug("Received call to Weather controller")

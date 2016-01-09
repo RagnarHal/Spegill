@@ -1,4 +1,5 @@
-var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+var WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 $( document ).ready(function($) {
 	console.log("Document ready");
@@ -52,7 +53,7 @@ function update_weather() {
 		var date = new Date(weather.dt*1000)
 		console.log(date);
 		
-		$("#weather-calc-date").text(monthNames[date.getMonth()] + " " + date.getDate() + " " + date.getFullYear());
+		$("#weather-calc-date").text(MONTHS[date.getMonth()] + " " + date.getDate() + " " + date.getFullYear());
 		$("#weather-calc-time").text(('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2));
 		$("#weather-temp").text(+(Math.round(weather.main.temp - 273.15 + "e+1") + "e-1") + "°C");
 		$("#weather-main").text(weather.weather.main);
@@ -83,7 +84,7 @@ function update_calendar() {
 		for (var e in calendar) {
 			var start = calendar[e].start.split(' ');
 			var end = calendar[e].end.split(' ');
-			var time_field = (today() == start[0] ? (start.length == 1 ? 'Today' : 'Today at ' + start[1].slice(0,5) + ' - ' + end[1].slice(0,5)) : start[0]);
+			var time_field = (today() == start[0] ? (start.length == 1 ? 'Today' : 'Today at ' + start[1].slice(0,5) + ' - ' + end[1].slice(0,5)) : normalize_date(start[0]));
 			$("#calendar").append(	'<tr>\
 										<td>' + calendar[e].summary + '</td>\
 		  								<td>' + time_field + '</td>\
@@ -103,6 +104,15 @@ function today() {
 	mm = ('0' + d.getMonth() + 1).slice(-2);
 	dd = ('0' + d.getDate()).slice(-2);
 	return (yyyy + '-' + mm + '-' + dd);
+}
+
+function normalize_date(date) {
+	var tokens = date.split('-');
+	var year = parseInt(tokens[0]);
+	var month = parseInt(tokens[1]) - 1;
+	var day = parseInt(tokens[2]) - 1;
+
+	return day + '. ' + MONTHS[month] + ' ' + year;
 }
 
 function compare_events(a, b) {
