@@ -16,3 +16,7 @@ body {
 .calendar-description {
 	padding-left: 10px;
 }
+
+#calendar {
+	width: 100%;
+}

@@ -35,7 +35,9 @@ def get_events():
 	logger.debug("Received call to Events controller")
 	# Get the URL parameter from the client and attempt to GET it.
 	url = flask.request.args.get('url')
+	debug = flask.request.args.get('dbg')
 	logger.debug("Received URL parameter: " + str(url))
+
 	if url is None:
 		logger.warning("No URL parameter supplied for calendar API, aborting request")
 		flask.abort(400, "No URL parameter supplied")
@@ -47,6 +49,7 @@ def get_events():
 		flask.abort(400, "No URL schema supplied. Perhaps you meant http://{0}?".format(str(url)))
 	# Attempt to parse the result into an icalendar object.
 	try:
+		logger.debug(str(response.content))
 		calendar = icalendar.Calendar.from_ical(response.content)
 	except ValueError:
 		logger.warning("Request to external calendar API did not provide a valid iCalendar format")
@@ -54,24 +57,21 @@ def get_events():
 
 	events = []
 	for event in calendar.walk('VEVENT'):
-		# dtstart.dt will return a date object and not a datetime object if the event is a full-day event.
+		start_datetime = event['dtstart'].dt
+		end_datetime = event['dtend'].dt
+		# event['dtstart'].dt and event['dtend'].dt will return a date object and not a datetime object if the event is a full-day event.
 		# Since a date object does not have a date() method, calling date() on an all-day event will fail.
-		start_day = event['dtstart'].dt.date() if isinstance(event['dtstart'].dt, datetime.datetime) else event['dtstart'].dt
-		end_day = event['dtend'].dt.date() if isinstance(event['dtend'].dt, datetime.datetime) else event['dtend'].dt
-		start_time = event['dtstart'].dt.time() if isinstance(event['dtstart'].dt, datetime.datetime) else ""
-		end_time = event['dtend'].dt.time() if isinstance(event['dtend'].dt, datetime.datetime) else ""
+		if isinstance(start_datetime, datetime.datetime):
+			start_date = start_datetime.date()
+		else:
+			start_date = start_datetime
 
-		today = datetime.date.today()
-
-		if today <= start_day:
+		if datetime.date.today() <= start_date:
 			events.append({	'summary' : event['summary'],
 							'description' : event['description'],
 							'location' : event['location'],
-							'start_day' : str(start_day),
-							'end_day' : str(end_day),
-							'start_time' : str(start_time),
-							'end_time' : str(end_time),
-							'is_today' : 1 if start_day == today else 0})
+							'start' : str(start_datetime),
+							'end' : str(end_datetime)})
 	logger.info("Calendar request succeeded and yielded {0} events".format(len(events)))
 	return flask.jsonify(results=events)
 
@@ -124,6 +124,7 @@ def get_weather():
 		"forecast" : {
 			"city" : forecast['city']['name'],
 			"country" : forecast['city']['country'],
+
 			"forecasts" : [	{ 
 				"time" : fc['dt'],
 				"cloudpercent" : fc['clouds']['all'],
@@ -137,10 +138,6 @@ def get_weather():
 		}
 	}
 
-	# The OpenWeatherAPI has two different feeds for current weather and forecast.
-	# We must fetch both and combine them, converting them to the desired format and filtering out useless info.
-	#d = '{"base": "cmc stations", "clouds": {"all": 0}, "cod": 200, "coord": {"lat": 64.12, "lon": -21.86}, "dt": 1452101400, "id": 6692263, "main": {"humidity": 51, "pressure": 980, "temp": 276.67, "temp_max": 277.15, "temp_min": 276.15}, "name": "Reykjavik", "sys": {"country": "IS", "id": 4835, "message": 0.0136, "sunrise": 1452078705, "sunset": 1452095727, "type": 1}, "weather": [{"description": "Sky is Clear", "icon": "01n", "id": 800, "main": "Clear"}], "wind": {"deg": 80, "gust": 18.5, "speed": 13.4}}'
-	
 	return flask.jsonify(result)
 
 @app.errorhandler(404)

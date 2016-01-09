@@ -43,7 +43,7 @@ function update_weather() {
 	console.log(current)
 	console.log(forecast)
 
-	$.get("http://127.0.0.1:5000/weather", {'current' : encodeURI(current), 'forecast' : encodeURI(forecast), 'dbg' : 'false'}, function(data) {
+	$.get("http://127.0.0.1:5000/weather", {'current' : encodeURI(current), 'forecast' : encodeURI(forecast), 'dbg' : 'true'}, function(data) {
 		console.log("Got response from Weather API");
 		$(".widget-weather-error").hide();
 		var weather = data.results;
@@ -76,18 +76,18 @@ function update_calendar() {
 	$.get("http://127.0.0.1:5000/events", {url : url}, function(data) {
 		console.log("Got response from Calendar API");
 		$(".widget-calendar-error").hide();
-		$(".widget-calendar").empty();
+		$("#calendar").empty();
 		var calendar = data.results;
 		if(calendar.length == 0) $(".widget-calendar").text('No upcoming events!');
 		calendar.sort(compare_events);
 		for (var e in calendar) {
-			//console.log(calendar[e].summary);
-			var today = (calendar[e].is_today == 1 ? true : false)
-			// TODO: Find a better way of building the markup
-			$(".widget-calendar").append('<div class="list-group event">\
-											<div class="list-group-item-heading"><h3>' + calendar[e].summary + '</h3></div>\
-		  									<div class="list-group-item-text calendar-description"><h5>' + (today ? calendar[e].start_time + ' - ' + calendar[e].end_time : calendar[e].start_day) + '</h5></div>\
-	  								 	  </div>');
+			var start = calendar[e].start.split(' ');
+			var end = calendar[e].end.split(' ');
+			var time_field = (today() == start[0] ? (start.length == 1 ? 'Today' : 'Today at ' + start[1].slice(0,5) + ' - ' + end[1].slice(0,5)) : start[0]);
+			$("#calendar").append(	'<tr>\
+										<td>' + calendar[e].summary + '</td>\
+		  								<td>' + time_field + '</td>\
+	  								</tr>');
 		};
 	})
 	.fail(function(data) {
@@ -97,11 +97,19 @@ function update_calendar() {
 	});
 };
 
+function today() {
+	d = new Date();
+	yyyy = d.getFullYear();
+	mm = ('0' + d.getMonth() + 1).slice(-2);
+	dd = ('0' + d.getDate()).slice(-2);
+	return (yyyy + '-' + mm + '-' + dd);
+}
+
 function compare_events(a, b) {
-	if (a.start_day < b.start_day) {
+	if (a.start < b.start) {
 		return -1;
 	}
-	if (a.start_day > b.start_day) {
+	if (a.start > b.start) {
 		return 1;
 	}
 	return 0;
