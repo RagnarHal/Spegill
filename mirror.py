@@ -59,6 +59,13 @@ def get_events():
 	for event in calendar.walk('VEVENT'):
 		start_datetime = event['dtstart'].dt
 		end_datetime = event['dtend'].dt
+		try:
+			location = event['location']
+		except KeyError:
+			# For some reason, the Google Calendar API does not include the LOCATION key on certain calendars (e.g. Holidays), thus raising a KeyError
+			# when trying to retrieve the location from the calendar. So we must catch the error and assign the value an empty string if raised.
+			logger.warning("Event '{0}' gave KeyError on 'location' key; calendar had no location key. Setting location to empty string.".format(event['summary']))
+			location = ""
 		# event['dtstart'].dt and event['dtend'].dt will return a date object and not a datetime object if the event is a full-day event.
 		# Since a date object does not have a date() method, calling date() on an all-day event will fail.
 		if isinstance(start_datetime, datetime.datetime):
@@ -69,7 +76,7 @@ def get_events():
 		if datetime.date.today() <= start_date:
 			events.append({	'summary' : event['summary'],
 							'description' : event['description'],
-							'location' : event['location'],
+							'location' : location,
 							'start' : str(start_datetime),
 							'end' : str(end_datetime)})
 	logger.info("Calendar request succeeded and yielded {0} events".format(len(events)))

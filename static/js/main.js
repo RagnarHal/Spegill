@@ -72,29 +72,31 @@ function update_weather() {
 function update_calendar() {
 	// Corrent URL:
 	// https://calendar.google.com/calendar/ical/ragnarhal%40gmail.com/private-3aaff115768f7c84e5b9ab1d4655344c/basic.ics
-	var url = "https://calendar.google.com/calendar/ical/ragnarhal%40gmail.com/private-3aaff115768f7c84e5b9ab1d4655344c/basic.ics";
+	// Holidays:
+	// https://calendar.google.com/calendar/ical/en.is%23holiday%40group.v.calendar.google.com/public/basic.ics
+	var url = "https://calendar.google.com/calendar/ical/en.is%23holiday%40group.v.calendar.google.com/public/basic.ics";
 	// Get the calendar from the server
 	$.get("http://127.0.0.1:5000/events", {url : url}, function(data) {
 		console.log("Got response from Calendar API");
-		$(".widget-calendar-error").hide();
-		$("#calendar").empty();
+		$("#calendar-error").hide();
+		$("#calendar-list").empty();
 		var calendar = data.results;
-		if(calendar.length == 0) $(".widget-calendar").text('No upcoming events!');
+		if(calendar.length == 0) $("#calendar-list").html('<tr><td>No upcoming events!</td></tr>');
 		calendar.sort(compare_events);
 		for (var e in calendar) {
 			var start = calendar[e].start.split(' ');
 			var end = calendar[e].end.split(' ');
 			var time_field = (today() == start[0] ? (start.length == 1 ? 'Today' : 'Today at ' + start[1].slice(0,5) + ' - ' + end[1].slice(0,5)) : normalize_date(start[0]));
-			$("#calendar").append(	'<tr>\
-										<td>' + calendar[e].summary + '</td>\
-		  								<td>' + time_field + '</td>\
-	  								</tr>');
+			$("#calendar-list").append(	'<tr>\
+											<td>' + (calendar[e].summary.length < 20 ? calendar[e].summary : calendar[e].summary.slice(0, 20) + '...') + '</td>\
+			  								<td>' + time_field + '</td>\
+		  								</tr>');
 		};
 	})
 	.fail(function(data) {
 		var msg = $(data.responseText).filter("p").html();
-		$(".widget-calendar-error").text('Request for calendar went wrong. Error code: ' + data.status + ': ' + msg);
-		$(".widget-calendar-error").show();
+		$("#calendar-error").text('Request for calendar went wrong. Error code: ' + data.status + ': ' + msg);
+		$("#calendar-error").show();
 	});
 };
 
@@ -110,7 +112,7 @@ function normalize_date(date) {
 	var tokens = date.split('-');
 	var year = parseInt(tokens[0]);
 	var month = parseInt(tokens[1]) - 1;
-	var day = parseInt(tokens[2]) - 1;
+	var day = parseInt(tokens[2]);
 
 	return day + '. ' + MONTHS[month] + ' ' + year;
 }
