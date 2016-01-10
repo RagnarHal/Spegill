@@ -23,7 +23,6 @@ calendar.update_data = function(callback) {
 	// TODO: IP Configurable in config. If another computer on the network tries to run the mirror, for example running the options interface, this will try to access the localhost of that machine. Need to have the IP of the flask server here.
 	$.get("http://127.0.0.1:5000/events", {'url' : encodeURI(url), 'debugging' : 'true'}, function(data) {
 		console.log("Got response from Calendar API. Updating calendar event list");
-		console.log(this)
 		this.event_list = data.results.sort(calendar.compare);
 		this.event_list = this.event_list.slice(0, calendar.max_events);
 
