@@ -1,0 +1,23 @@
+{
+	"coord":{
+		"lon":-21.9,"lat":64.14
+	},
+	"weather":[
+		{"id":800,"main":"Clear","description":"Sky is Clear","icon":"01n"
+	}],
+	"base":"cmc stations",
+	"main":{
+		"temp":277.66,"pressure":978,"humidity":56,"temp_min":277.15,"temp_max":278.15
+	},
+	"wind":{
+		"speed":12.3,"deg":80,"gust":19
+	},
+	"clouds":{
+		"all":0
+	},
+	"dt":1452112200,
+	"sys":{
+		"type":1,"id":4835,"message":0.0092,"country":"IS","sunrise":1452078720,"sunset":1452095738
+	},
+	"id":3413829,"name":"Reykjavik","cod":200
+}

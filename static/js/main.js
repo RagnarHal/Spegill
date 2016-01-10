@@ -44,23 +44,83 @@ function update_weather() {
 	console.log(current)
 	console.log(forecast)
 
-	$.get("http://127.0.0.1:5000/weather", {'current' : encodeURI(current), 'forecast' : encodeURI(forecast), 'dbg' : 'true'}, function(data) {
-		console.log("Got response from Weather API");
-		$(".widget-weather-error").hide();
-		var weather = data.results;
-		console.log(data.results);
-		if(weather.length == 0) $(".widget-weather").text("No weather :(");
-		var date = new Date(weather.dt*1000)
-		console.log(date);
+	$.get("http://127.0.0.1:5000/weather-current", {'url' : encodeURI(current), 'debugging' : 'true'}, function(data) {
+		console.log("Got response from Current Weather API");
+		$("#weather-current-error").hide();
+		$("#weather-current").empty();
+		var weather = data;
+		if(weather.length == 0) $("#weather-current").text("No weather :(");
 		
-		$("#weather-calc-date").text(MONTHS[date.getMonth()] + " " + date.getDate() + " " + date.getFullYear());
-		$("#weather-calc-time").text(('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2));
-		$("#weather-temp").text(+(Math.round(weather.main.temp - 273.15 + "e+1") + "e-1") + "°C");
-		$("#weather-main").text(weather.weather.main);
-		$("#weather-desc").text(weather.weather[0].description);
-		$("#weather-windspeed").text(weather.wind.speed + " m/s");
-		$("#weather-winddirection").text(weather.wind.deg + "°");
-		$("#weather-cloudpercent").text(weather.clouds.all + "% clouds");
+		$("#weather-current").append('<tr>\
+										<td>City:</td>\
+										<td>' + data.city + '</td>\
+									</tr>\
+									<tr>\
+										<td>Country:</td>\
+										<td>' + data.country + '</td>\
+									</tr>\
+									<tr>\
+										<td>Time:</td>\
+										<td>' + normalize_date(data.time.split(" ")[0]) + ' ' + data.time.split(" ")[1].slice(0, 5) + '</td>\
+									</tr>\
+									<tr>\
+										<td>Weather Main</td>\
+										<td>' + data.weather[0].main + '</td>\
+									</tr>\
+									<tr>\
+										<td>Weather Description</td>\
+										<td>' + data.weather[0].description + '</td>\
+									</tr>\
+									<tr>\
+										<td>Wind direction</td>\
+										<td>' + data.wind.deg + '°</td>\
+									</tr>\
+									<tr>\
+										<td>Wind speed</td>\
+										<td>' + data.wind.speed + ' m/s</td>\
+									</tr>\
+									<tr>\
+										<td>Wind gusts</td>\
+										<td>' + data.wind.gust + ' m/s</td>\
+									</tr>\
+									<tr>\
+										<td>Cloud Percent</td>\
+										<td>' + data.cloudpercent + '%</td>\
+									</tr>\
+									<tr>\
+										<td>Temperature</td>\
+										<td>' + (Math.round((data.temp.current - 273.15) * 10) / 10).toFixed(1) + '°C</td>\
+										<td>' + (Math.round((data.temp.max - 273.15) * 10) / 10).toFixed(1) + '°C</td>\
+										<td>' + (Math.round((data.temp.min - 273.15) * 10) / 10).toFixed(1) + '°C</td>\
+									</tr>');
+	})
+	.fail(function(data) {
+		var msg = $(data.responseText).filter("p").html();
+		$("#weather-current-error").text("Request for weather went wrong. Error code: " + data.status + ": " + msg);
+		$("#weather-current-error").show();
+	});
+
+	$.get("http://127.0.0.1:5000/weather-forecast", {'url' : encodeURI(forecast), 'debugging' : 'true'}, function(data) {
+		console.log("Got response from Forecast Weather API");
+		$("#weather-forecast-error").hide();
+		$("#weather-forecast").empty();
+		var weather = data;
+		if(weather.length == 0) $("#weather-forecast").text("No weather :(");
+		
+		for(var fc in data.forecasts) {
+			console.log(data.forecasts[fc])
+			var time = data.forecasts[fc].time.split(" ")[1]
+			if(time == '12:00:00' || time == '15:00:00' || time == '18:00:00') {
+				$("#weather-forecast").append('<tr>\
+												<td>' + normalize_date(data.forecasts[fc].time.split(" ")[0]) + ' ' + data.forecasts[fc].time.split(" ")[1].slice(0, 5) + '</td>\
+												<td>' + data.forecasts[fc].weather[0].main + '</td>\
+												<td>' + data.forecasts[fc].wind.speed + ' m/s</td>\
+												<td>' + (Math.round((data.forecasts[fc].temp.current - 273.15) * 10) / 10).toFixed(1) + '°C</td>\
+											</tr>');
+			}
+			
+		}
+		
 	})
 	.fail(function(data) {
 		var msg = $(data.responseText).filter("p").html();
@@ -115,6 +175,10 @@ function normalize_date(date) {
 	var day = parseInt(tokens[2]);
 
 	return day + '. ' + MONTHS[month] + ' ' + year;
+}
+
+function round_to_two(num) {  
+    return +(Math.round(num + "e+2")  + "e-2");
 }
 
 function compare_events(a, b) {
