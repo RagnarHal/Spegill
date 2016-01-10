@@ -115,8 +115,6 @@ def get_weather_current():
 	return flask.jsonify(result)
 
 @app.route('/forecast')
-# Get the current weather and the forecast from different APIs.
-# Combine the results into one single json object
 def get_weather_forecast():
 	logger.debug("Received call to Forecast Weather controller")
 
@@ -154,6 +152,23 @@ def get_weather_forecast():
 		flask.abort(400, "KeyError received on key '{0}'. This probably happened because the structure of the API response is different than expected.".format(e.message))
 
 	return flask.jsonify(result)
+
+@app.route('/holidays')
+def get_holidays():
+	logger.debug("Received call to Holidays controller")
+
+	with open('calendars/fridagar.ics') as f:
+		calendar = icalendar.Calendar.from_ical(f.read())
+
+	events = []
+	for event in calendar.walk('VEVENT'):
+		if datetime.date.today() <= event['dtstart'].dt:
+			events.append({	'summary' : event['summary'],
+							'start' : str(event['dtstart'].dt),
+							'end' : str(event['dtend'].dt)})
+
+	logger.info("Holiday request succeeded and yielded {0} holidays".format(len(events)))
+	return flask.jsonify(results=events)
 
 def fetch_calendar_mock():
 	logger.debug("Fetching mock calendar data")

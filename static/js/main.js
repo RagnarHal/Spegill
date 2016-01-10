@@ -7,6 +7,7 @@ $( document ).ready(function($) {
 	// Debug button for updating the calendar instantly when needed
 	$("#update-cal").click(function() {
 		calendar.init();
+		calendar.update_holidays();
 	});
 	$("#update-weather").click(function() {
 		weather.update_weather();

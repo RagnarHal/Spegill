@@ -62,6 +62,29 @@ calendar.update_calendar = function(events) {
 	}
 };
 
+calendar.update_holidays = function() {
+	$.get("http://127.0.0.1:5000/holidays", function(data) {
+		console.log("Got response from Holidays API. Updating holidays event list");
+
+		holidays = data.results.sort(calendar.compare).slice(0, 10);
+
+		for (var i in holidays) {
+			h = holidays[i];
+			var date_field = (h.start == clock.today ? 'Today' : normalize_date(h.start));
+			$("#holidays-list").append(	'<tr>\
+											<td>' + h.summary.split('[')[0] + '</td>\
+			  								<td>' + date_field + '</td>\
+		  								</tr>');
+		}
+		
+	})
+	.fail(function(data) {
+		console.log("Attempt to get holidays data failed");
+		var msg = $(data.responseText).filter('p').html();
+		console.log("Error code: " + data.status + ': ' + msg);
+	});
+}
+
 calendar.compare = function (a, b) {
 	if (a.start < b.start) {
 		return -1;
