@@ -45,12 +45,20 @@ weather.update_weather = function() {
 										<td>' + data.weather[0].main + '</td>\
 									</tr>\
 									<tr>\
+										<td>Weather Icon</td>\
+										<td><i class="wi wi-owm-' + data.weather[0].id + '"></i></td>\
+									</tr>\
+									<tr>\
 										<td>Weather Description</td>\
 										<td>' + data.weather[0].description + '</td>\
 									</tr>\
 									<tr>\
 										<td>Wind direction</td>\
 										<td>' + Math.round(data.wind.deg) + '°</td>\
+									</tr>\
+									<tr>\
+										<td>Wind direction Icon</td>\
+										<td><i class="wi wi-wind towards-' + Math.round(data.wind.deg) + '-deg"></i></td>\
 									</tr>\
 									<tr>\
 										<td>Wind speed</td>\

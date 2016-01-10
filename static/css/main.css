@@ -49,3 +49,7 @@ table.fixed td:nth-of-type(2) {
 #calendar {
 	width: 100%;
 }
+
+i.wi {
+	font-size: 200%;
+}
