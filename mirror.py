@@ -73,7 +73,7 @@ def get_events():
 	logger.info("Calendar request succeeded and yielded {0} events".format(len(events)))
 	return flask.jsonify(results=events)
 
-@app.route('/weather-current')
+@app.route('/weather')
 def get_weather_current():
 	logger.debug("Received call to Current Weather controller")
 
@@ -114,7 +114,7 @@ def get_weather_current():
 
 	return flask.jsonify(result)
 
-@app.route('/weather-forecast')
+@app.route('/forecast')
 # Get the current weather and the forecast from different APIs.
 # Combine the results into one single json object
 def get_weather_forecast():

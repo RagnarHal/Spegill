@@ -26,8 +26,11 @@ calendar.update_data = function(callback) {
 		this.event_list = data.results.sort(calendar.compare);
 		this.event_list = this.event_list.slice(0, calendar.max_events);
 
-		if (callback !== undefined && Object.prototype.toString.call(callback) === '[object Function]') {
+		if (typeof callback == 'function') {
 			callback(this.event_list);
+		}
+		else {
+			console.log("Callback function received for updating calendar data is not a function, cannot update calendar.")
 		}
 	})
 	.fail(function(data) {
