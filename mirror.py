@@ -22,6 +22,8 @@ if os.path.exists(config_path):
 else:
 	logging.basicConfig(level=logging.INFO)
 
+logger = logging.getLogger('mirror')
+
 app = flask.Flask(__name__, template_folder='views')
 
 @app.route('/')
@@ -31,29 +33,18 @@ def index():
 # Returns today's events in JSON format as a list of events
 @app.route('/events')
 def get_events():
-	logger = logging.getLogger('mirror')
 	logger.debug("Received call to Events controller")
-	# Get the URL parameter from the client and attempt to GET it.
+
 	url = flask.request.args.get('url')
-	debug = flask.request.args.get('dbg')
+	debug = flask.request.args.get('debugging')
+
 	logger.debug("Received URL parameter: " + str(url))
+	logger.debug("Received DEBUG parameter: " + str(debug))
 
-	if url is None:
-		logger.warning("No URL parameter supplied for calendar API, aborting request")
-		flask.abort(400, "No URL parameter supplied")
-
-	try:
-		response = requests.get(url)
-	except requests.exceptions.MissingSchema:
-		logger.warning("Invalid URL parameter supplied for calendar API, aborting request")
-		flask.abort(400, "No URL schema supplied. Perhaps you meant http://{0}?".format(str(url)))
-	# Attempt to parse the result into an icalendar object.
-	try:
-		logger.debug(str(response.content))
-		calendar = icalendar.Calendar.from_ical(response.content)
-	except ValueError:
-		logger.warning("Request to external calendar API did not provide a valid iCalendar format")
-		flask.abort(400, "Not a valid ical calendar.")
+	if debug == 'true':
+		calendar = fetch_calendar_mock()
+	else:
+		calendar = fetch_calendar(url)
 
 	events = []
 	for event in calendar.walk('VEVENT'):
@@ -64,8 +55,8 @@ def get_events():
 		except KeyError:
 			# For some reason, the Google Calendar API does not include the LOCATION key on certain calendars (e.g. Holidays), thus raising a KeyError
 			# when trying to retrieve the location from the calendar. So we must catch the error and assign the value an empty string if raised.
-			logger.warning("Event '{0}' gave KeyError on 'location' key; calendar had no location key. Setting location to empty string.".format(event['summary']))
 			location = ""
+			
 		# event['dtstart'].dt and event['dtend'].dt will return a date object and not a datetime object if the event is a full-day event.
 		# Since a date object does not have a date() method, calling date() on an all-day event will fail.
 		if isinstance(start_datetime, datetime.datetime):
@@ -84,7 +75,6 @@ def get_events():
 
 @app.route('/weather-current')
 def get_weather_current():
-	logger = logging.getLogger('mirror')
 	logger.debug("Received call to Current Weather controller")
 
 	url = flask.request.args.get('url')
@@ -128,7 +118,6 @@ def get_weather_current():
 # Get the current weather and the forecast from different APIs.
 # Combine the results into one single json object
 def get_weather_forecast():
-	logger = logging.getLogger('mirror')
 	logger.debug("Received call to Forecast Weather controller")
 
 	url = flask.request.args.get('url')
@@ -166,22 +155,45 @@ def get_weather_forecast():
 
 	return flask.jsonify(result)
 
+def fetch_calendar_mock():
+	logger.debug("Fetching mock calendar data")
+
+	with open('test/calendar.txt') as f:
+		return icalendar.Calendar.from_ical(f.read())
+
+def fetch_calendar(url):
+	logger.debug("Fetching real calendar data")
+
+	if url is None:
+			logger.warning("No URL parameter supplied for calendar API, aborting request")
+			flask.abort(400, "No URL parameter supplied")
+	try:
+		response = requests.get(url)
+	except requests.exceptions.MissingSchema as e:
+		logger.error("Exception {0} caught while trying to GET calendar. Message: {1}".format(e.__class__, e.message))
+		flask.abort(400, e.message)
+
+	try:
+		calendar = icalendar.Calendar.from_ical(response.content)
+	except ValueError as e:
+		logger.error("Parsing API response failed. Request to external calendar API did not provide a valid iCalendar format.")
+		flask.abort(400, "Not a valid ical calendar.")
+
+	return calendar
+
 def fetch_weather_current_mock():
-	logger = logging.getLogger('mirror')
 	logger.debug("Fetching mock data for current weather")
 
 	with open('test/weather_current.json') as f:
 		return json.load(f)
 
 def fetch_weather_forecast_mock():
-	logger = logging.getLogger('mirror')
 	logger.debug("Fetching mock data for forecast weather")
 
 	with open('test/weather_forecast.json') as f:
 		return json.load(f)
 
 def fetch_weather(url):
-	logger = logging.getLogger('mirror')
 	logger.debug("Fetching real weather data")
 
 	try:
@@ -201,11 +213,13 @@ def fetch_weather(url):
 
 @app.errorhandler(404)
 def not_found(e):
+	logger.warning("404 error encountered. Message: {0}".format(e.description))
 	resp = flask.make_response(e.description, 404)
 	return resp
 
 @app.errorhandler(500)
 def server_error(e):
+	logger.warning("500 error encountered. Message: {0}".format(e.description))
 	resp = flask.make_response(e.description, 500)
 	return resp
 

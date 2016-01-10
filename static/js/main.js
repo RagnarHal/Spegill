@@ -136,7 +136,7 @@ function update_calendar() {
 	// https://calendar.google.com/calendar/ical/en.is%23holiday%40group.v.calendar.google.com/public/basic.ics
 	var url = "https://calendar.google.com/calendar/ical/en.is%23holiday%40group.v.calendar.google.com/public/basic.ics";
 	// Get the calendar from the server
-	$.get("http://127.0.0.1:5000/events", {url : url}, function(data) {
+	$.get("http://127.0.0.1:5000/events", {'url' : encodeURI(url), 'debugging' : 'true'}, function(data) {
 		console.log("Got response from Calendar API");
 		$("#calendar-error").hide();
 		$("#calendar-list").empty();
