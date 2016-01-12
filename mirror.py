@@ -7,6 +7,10 @@ import icalendar
 import datetime
 import requests
 import json
+import ConfigParser
+
+# Load user config. If none exists, create one with default values.
+# Code goes here #
 
 # Checking if logs folder exists
 log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
@@ -180,8 +184,9 @@ def fetch_calendar(url):
 	logger.debug("Fetching real calendar data")
 
 	if url is None:
-			logger.warning("No URL parameter supplied for calendar API, aborting request")
-			flask.abort(400, "No URL parameter supplied")
+		logger.warning("No URL parameter supplied for calendar API, aborting request")
+		flask.abort(400, "No URL parameter supplied")
+
 	try:
 		response = requests.get(url)
 	except requests.exceptions.MissingSchema as e:
