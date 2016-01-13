@@ -7,4 +7,4 @@ logger = logger.init()
 
 #-- Set up config --#
 
-import mirror.views
+import mirror.controllers

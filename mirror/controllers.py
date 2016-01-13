@@ -14,6 +14,7 @@ from mirror import logger
 
 @app.route('/')
 def index():
+	logger.debug("Received call to Index controller")
 	return flask.render_template('index.html')
 
 # Returns today's events in JSON format as a list of events
