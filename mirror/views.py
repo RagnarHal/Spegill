@@ -1,34 +1,16 @@
 # -*- coding: utf-8 -*-
-import os
-import logging
-import logging.config
 import flask
 import icalendar
 import datetime
 import requests
 import json
-import ConfigParser
+import config
+from mirror import app
+from mirror import logger
 
 # Load user config. If none exists, create one with default values.
 # Code goes here #
-
-# Checking if logs folder exists
-log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
-if not os.path.exists(log_path):
-	os.makedirs(log_path)
-
-# Checking for logger config files
-config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config', 'loggers.json')
-if os.path.exists(config_path):
-	with open(config_path, 'rt') as f:
-		config = json.load(f)
-	logging.config.dictConfig(config)
-else:
-	logging.basicConfig(level=logging.INFO)
-
-logger = logging.getLogger('mirror')
-
-app = flask.Flask(__name__, template_folder='views')
+#config.init()
 
 @app.route('/')
 def index():
@@ -242,6 +224,3 @@ def server_error(e):
 	logger.warning("500 error encountered. Message: {0}".format(e.description))
 	resp = flask.make_response(e.description, 500)
 	return resp
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
