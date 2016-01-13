@@ -6,5 +6,7 @@ from mirror import logger
 logger = logger.init()
 
 #-- Set up config --#
+from mirror import config
+settings = config.get_user_settings()
 
 import mirror.controllers

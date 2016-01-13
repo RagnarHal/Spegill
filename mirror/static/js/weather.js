@@ -19,9 +19,7 @@ weather.init = function() {
 }
 
 weather.update_weather = function() {
-	var url = weather.api + '/' + weather.api_version + '/' + weather.weather + '?id=' + weather.city_id + '&appid=' + weather.appid;
-	console.log(url);
-	$.get("http://127.0.0.1:5000/weather", {'url' : encodeURI(url), 'debugging' : 'true'}, function(data) {
+	$.get("http://127.0.0.1:5000/weather", function(data) {
 		console.log("Got response from current weather API");
 		$("#weather-current-error").hide();
 		$("#weather-current").empty();
@@ -88,10 +86,8 @@ weather.update_weather = function() {
 };
 
 weather.update_forecast = function() {
-	var url = weather.api + '/' + weather.api_version + '/' + weather.forecast + '?id=' + weather.city_id + '&appid=' + weather.appid;
-	console.log(url);
-
-	$.get("http://127.0.0.1:5000/forecast", {'url' : encodeURI(url), 'debugging' : 'true'}, function(data) {
+	$.get("http://127.0.0.1:5000/forecast", function(data) {
+		console.log("Got response from forecast weather API");
 		$("#weather-forecast-error").hide();
 		$("#weather-forecast").empty();
 

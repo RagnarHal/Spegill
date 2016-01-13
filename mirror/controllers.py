@@ -4,13 +4,10 @@ import icalendar
 import datetime
 import requests
 import json
-import config
+from ConfigParser import NoSectionError, NoOptionError
 from mirror import app
 from mirror import logger
-
-# Load user config. If none exists, create one with default values.
-# Code goes here #
-#config.init()
+from mirror import settings
 
 @app.route('/')
 def index():
@@ -22,13 +19,18 @@ def index():
 def get_events():
 	logger.debug("Received call to Events controller")
 
-	url = flask.request.args.get('url')
-	debug = flask.request.args.get('debugging')
+	# TODO: Move try/catch block out of controllers.py; doesn't belong here.
+	try:
+		url = settings.get('calendar', 'url')
+		debug = settings.getboolean('app', 'debug')
+	except (NoSectionError, NoOptionError, ValueError) as e:
+		logger.warning("Config parser raised error: {0}. Please check settings.cfg.".format(e.message))
+		flask.abort(500, "Server config file is not valid. Cannot process request. See log for further info.")
 
-	logger.debug("Received URL parameter: " + str(url))
-	logger.debug("Received DEBUG parameter: " + str(debug))
+	logger.debug("URL parsed from config file: " + str(url))
+	logger.debug("DEBUG parsed from config file: " + str(debug))
 
-	if debug == 'true':
+	if debug:
 		calendar = fetch_calendar_mock()
 	else:
 		calendar = fetch_calendar(url)
@@ -64,13 +66,18 @@ def get_events():
 def get_weather_current():
 	logger.debug("Received call to Current Weather controller")
 
-	url = flask.request.args.get('url')
-	debug = flask.request.args.get('debugging')
+	# TODO: Move try/catch block out of controllers.py; doesn't belong here.
+	try:
+		url = settings.get('weather', 'weather')
+		debug = settings.getboolean('app', 'debug')
+	except (NoSectionError, NoOptionError, ValueError) as e:
+		logger.warning("Config parser raised error: {0}. Please check settings.cfg.".format(e.message))
+		flask.abort(500, "Server config file is not valid. Cannot process request. See log for further info.")
 
-	logger.debug("Received URL parameter: {0}".format(str(url)))
-	logger.debug("Received DEBUG parameter: {0}".format(str(debug)))
+	logger.debug("URL parsed from config file: " + str(url))
+	logger.debug("DEBUG parsed from config file: " + str(debug))
 
-	if debug == 'true':
+	if debug:
 		weather = fetch_weather_current_mock()
 	else:
 		weather = fetch_weather(url)
@@ -105,13 +112,17 @@ def get_weather_current():
 def get_weather_forecast():
 	logger.debug("Received call to Forecast Weather controller")
 
-	url = flask.request.args.get('url')
-	debug = flask.request.args.get('debugging')
+	try:
+		url = settings.get('weather', 'forecast')
+		debug = settings.getboolean('app', 'debug')
+	except (NoSectionError, NoOptionError, ValueError) as e:
+		logger.warning("Config parser raised error: {0}. Please check settings.cfg.".format(e.message))
+		flask.abort(500, "Server config file is not valid. Cannot process request. See log for further info.")
 
-	logger.debug("Received URL parameter: {0}".format(str(url)))
-	logger.debug("Received DEBUG parameter: {0}".format(str(debug)))
+	logger.debug("URL parsed from config file: " + str(url))
+	logger.debug("DEBUG parsed from config file: " + str(debug))
 
-	if debug == 'true':
+	if debug:
 		weather = fetch_weather_forecast_mock()
 	else:
 		weather = fetch_weather(url)
@@ -144,7 +155,7 @@ def get_weather_forecast():
 def get_holidays():
 	logger.debug("Received call to Holidays controller")
 
-	with open('calendars/fridagar.ics') as f:
+	with open(settings.get('calendar', 'holidays')) as f:
 		calendar = icalendar.Calendar.from_ical(f.read())
 
 	events = []
@@ -160,7 +171,7 @@ def get_holidays():
 def fetch_calendar_mock():
 	logger.debug("Fetching mock calendar data")
 
-	with open('test/calendar.txt') as f:
+	with open(settings.get('mock', 'calendar')) as f:
 		return icalendar.Calendar.from_ical(f.read())
 
 def fetch_calendar(url):
@@ -187,13 +198,13 @@ def fetch_calendar(url):
 def fetch_weather_current_mock():
 	logger.debug("Fetching mock data for current weather")
 
-	with open('test/weather_current.json') as f:
+	with open(settings.get('mock', 'weather')) as f:
 		return json.load(f)
 
 def fetch_weather_forecast_mock():
 	logger.debug("Fetching mock data for forecast weather")
 
-	with open('test/weather_forecast.json') as f:
+	with open(settings.get('mock', 'forecast')) as f:
 		return json.load(f)
 
 def fetch_weather(url):
