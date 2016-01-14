@@ -11,13 +11,13 @@ from mirror import settings
 
 @app.route('/')
 def index():
-	logger.debug("Received call to Index controller")
+	logger.debug("Received call to Index controller from " + str(flask.request.remote_addr))
 	return flask.render_template('index.html')
 
 # Returns today's events in JSON format as a list of events
 @app.route('/events')
 def get_events():
-	logger.debug("Received call to Events controller")
+	logger.debug("Received call to Events controller from " + str(flask.request.remote_addr))
 
 	# TODO: Move try/catch block out of controllers.py; doesn't belong here.
 	try:
@@ -64,7 +64,7 @@ def get_events():
 
 @app.route('/weather')
 def get_weather_current():
-	logger.debug("Received call to Current Weather controller")
+	logger.debug("Received call to Current Weather controller from " + str(flask.request.remote_addr))
 
 	# TODO: Move try/catch block out of controllers.py; doesn't belong here.
 	try:
@@ -110,7 +110,7 @@ def get_weather_current():
 
 @app.route('/forecast')
 def get_weather_forecast():
-	logger.debug("Received call to Forecast Weather controller")
+	logger.debug("Received call to Forecast Weather controller from " + str(flask.request.remote_addr))
 
 	try:
 		url = settings.get('weather', 'forecast')
@@ -153,7 +153,7 @@ def get_weather_forecast():
 
 @app.route('/holidays')
 def get_holidays():
-	logger.debug("Received call to Holidays controller")
+	logger.debug("Received call to Holidays controller from " + str(flask.request.remote_addr))
 
 	with open(settings.get('calendar', 'holidays')) as f:
 		calendar = icalendar.Calendar.from_ical(f.read())
@@ -222,7 +222,6 @@ def fetch_weather(url):
 		logger.error("Exception {0} caught while trying to parse JSON for current weather. Message: {1}. Data: {2}".format(e.__class__, e.message, str(weather_json)))
 		flask.abort(400, e.message)
 
-	logger.debug(str(weather))
 	return weather
 
 @app.errorhandler(404)

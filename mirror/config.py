@@ -10,7 +10,7 @@ if not os.path.exists(os.path.join(basepath, 'config')):
 def get_user_settings():
 	# Check if config file exists and load it. If it doesn't exist, create it with default settings. If a section doesn't exist, load None
 	configpath = os.path.join(basepath, 'config', 'settings.cfg')
-	settings = configparser.ConfigParser()
+	settings = configparser.SafeConfigParser()
 
 	if os.path.exists(configpath):
 		settings.read(configpath)

@@ -3,7 +3,6 @@ var WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 $( document ).ready(function($) {
 	console.log("Document ready");
-
 	// Debug button for updating the calendar instantly when needed
 	$("#update-cal").click(function() {
 		calendar.init();

@@ -19,7 +19,7 @@ weather.init = function() {
 }
 
 weather.update_weather = function() {
-	$.get("http://127.0.0.1:5000/weather", function(data) {
+	$.get("http://" + location.host + "/weather", function(data) {
 		console.log("Got response from current weather API");
 		$("#weather-current-error").hide();
 		$("#weather-current").empty();
@@ -86,7 +86,7 @@ weather.update_weather = function() {
 };
 
 weather.update_forecast = function() {
-	$.get("http://127.0.0.1:5000/forecast", function(data) {
+	$.get("http://" + location.host + "/forecast", function(data) {
 		console.log("Got response from forecast weather API");
 		$("#weather-forecast-error").hide();
 		$("#weather-forecast").empty();
