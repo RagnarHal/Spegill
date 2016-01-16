@@ -1,74 +1,39 @@
 {% extends "layout.html" %}
 {% block body %}
-	<div class="col-xs-2 container text-left widget-clock">
-		<span class="clock"></span>
-	</div>
-
-	<div class="col-xs-10 container text-center top-banner">
+	<div class="top-banner">
 		<div id="debug">
-			<button type="button" class="btn btn-primary" id="update-cal">Update Calendar</button>
-			<button type="button" class="btn btn-primary" id="update-weather">Update Weather</button>
+			<button type="button" id="update-cal">Update Calendar</button>
+			<button type="button" id="update-weather">Update Weather</button>
 		</div>
 	</div>
 
-	<div class="col-xs-3 container text-left left-info">
+	<div class="left-info">
+		<div id="datetime">
+			<div id="date">
+				Monday, 16. jan 2016
+			</div>
+			<div id="time" class="clock"></div>
+		</div>
 		<div class="events">
-			<h2>Upcoming Events</h2>
+			<div class="list-header">Agenda</div>
 			<div id="calendar-error"></div>
 			<table id="calendar-list" class="fixed"></table>
 		</div>
 		<div class="holidays">
-			<h2>Upcoming Holidays</h2>
+			<div class="list-header">Holidays</div>
 			<div id="holidays-error"></div>
 			<table id="holidays-list" class="fixed"></table>
 		</div>
 	</div>
 
-	<div class="col-xs-6 container text-center"></div>
+	<div class="right-info">
+		<div id="weather-icon">
+			<i class="wi wi-owm-day-800"></i>
+			<div id="weather-desc"></div>
+		</div>
 
-	<div class="col-xs-3 container text-right right-info">
-		<h2>Current Weather</h2>
+		<div id="weather-temp"></div>
+		<div id="weather-forecast"></div>
 		<div id="weather-current-error"></div>
-		<table id="weather-current" class="table">
-			<tr>
-				<td>City:</td>
-				<td>Reykjavík</td>
-			</tr>
-			<tr>
-				<td>Country:</td>
-				<td>Iceland</td>
-			</tr>
-			<tr>
-				<td>Time:</td>
-				<td>2016-14-12 10:20</td>
-			</tr>
-			<tr>
-				<td>Weather Main</td>
-				<td>Weather Description</td>
-			</tr>
-			<tr>
-				<td>Wind direction</td>
-				<td>Wind speed</td>
-			</tr>
-			<tr>
-				<td>Cloud Percent</td>
-			</tr>
-			<tr>
-				<td>Temperature</td>
-				<td>Max Temp</td>
-				<td>Min Temp</td>
-			</tr>
-		</table>
-
-		<h2>Upcoming Weather</h2>
-		<div id="weather-forecast-error"></div>
-		<table id="weather-forecast" class="table">
-			<tr>
-				<td>2016-14-12 10:20</td>
-				<td>Main</td>
-				<td>Wind speed</td>
-				<td>Temp</td>
-			</tr>
-		</table>
 	</div>
 {% endblock %}

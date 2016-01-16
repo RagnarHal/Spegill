@@ -22,61 +22,13 @@ weather.update_weather = function() {
 	$.get("http://" + location.host + "/weather", function(data) {
 		console.log("Got response from current weather API");
 		$("#weather-current-error").hide();
-		$("#weather-current").empty();
 
-		if (data.length == 0) $("#weather-current").text("No weather :(");
+		var hour = (data.time.split(" ")[1].split(":")[0]);
+		var day = (06 <= hour && hour <= 18) ? 'day' : 'night';
 
-		$("#weather-current").append('<tr>\
-										<td>City:</td>\
-										<td>' + data.city + '</td>\
-									</tr>\
-									<tr>\
-										<td>Country:</td>\
-										<td>' + data.country + '</td>\
-									</tr>\
-									<tr>\
-										<td>Time:</td>\
-										<td>' + normalize_date(data.time.split(" ")[0]) + ' ' + data.time.split(" ")[1].slice(0, 5) + '</td>\
-									</tr>\
-									<tr>\
-										<td>Weather Main</td>\
-										<td>' + data.weather[0].main + '</td>\
-									</tr>\
-									<tr>\
-										<td>Weather Icon</td>\
-										<td><i class="wi wi-owm-' + data.weather[0].id + '"></i></td>\
-									</tr>\
-									<tr>\
-										<td>Weather Description</td>\
-										<td>' + data.weather[0].description + '</td>\
-									</tr>\
-									<tr>\
-										<td>Wind direction</td>\
-										<td>' + Math.round(data.wind.deg) + '°</td>\
-									</tr>\
-									<tr>\
-										<td>Wind direction Icon</td>\
-										<td><i class="wi wi-wind towards-' + Math.round(data.wind.deg) + '-deg"></i></td>\
-									</tr>\
-									<tr>\
-										<td>Wind speed</td>\
-										<td>' + data.wind.speed + ' m/s</td>\
-									</tr>\
-									<tr>\
-										<td>Wind gusts</td>\
-										<td>' + data.wind.gust + ' m/s</td>\
-									</tr>\
-									<tr>\
-										<td>Cloud Percent</td>\
-										<td>' + data.cloudpercent + '%</td>\
-									</tr>\
-									<tr>\
-										<td>Temperature</td>\
-										<td>' + (Math.round((data.temp.current - 273.15) * 10) / 10).toFixed(1) + '°C</td>\
-										<td>' + (Math.round((data.temp.max - 273.15) * 10) / 10).toFixed(1) + '°C</td>\
-										<td>' + (Math.round((data.temp.min - 273.15) * 10) / 10).toFixed(1) + '°C</td>\
-									</tr>');
-
+		$("#weather-icon").empty().html('<i class="wi wi-owm-' + day + '-' + data.weather[0].id + '"></i>');
+		$("#weather-icon").append('<div id="weather-desc">' + data.weather[0].main + '</div>');
+		$("#weather-temp").text((Math.round((data.temp.current - 273.15) * 10) / 10).toFixed(1) + '°C');
 	})
 	.fail(function(data) {
 		var msg = $(data.responseText).filter("p").html();
@@ -89,23 +41,29 @@ weather.update_forecast = function() {
 	$.get("http://" + location.host + "/forecast", function(data) {
 		console.log("Got response from forecast weather API");
 		$("#weather-forecast-error").hide();
+
+		var forecast = data.forecasts.filter(function(e) {
+			return e.time.split(" ")[1] === '12:00:00';
+		});
+
+		//$("#weather-forecast").empty();
+
+		var day_row = '<tr>';
+		var icon_row = '<tr>';
+		var temp_row = '<tr>';
+
+		forecast.forEach(function(e) {
+			day_row += '<td class="sup">' + WEEKDAYS[new Date(e.time.split(" ")[0]).getDay()] + '</td>';
+			icon_row += '<td><i class="wi wi-owm-' + e.weather[0].id + '"></i></td>';
+			temp_row += '<td class="sup">' + (Math.round((e.temp.current - 273.15) * 10) / 10).toFixed(0) + '°</td>';
+		});
+
+		day_row += '</tr>';
+		icon_row += '</tr>';
+		temp_row += '</tr>';
+
 		$("#weather-forecast").empty();
-
-		if(data.length == 0) $("#weather-forecast").text("No weather :(");
-
-		for(var i in data.forecasts) {
-			var fc = data.forecasts[i];
-			var time = fc.time.split(" ")[1]
-
-			if(time == '12:00:00' || time == '15:00:00' || time == '18:00:00') {
-				$("#weather-forecast").append('<tr>\
-												<td>' + normalize_date(fc.time.split(" ")[0]) + ' ' + fc.time.split(" ")[1].slice(0, 5) + '</td>\
-												<td>' + fc.weather[0].main + '</td>\
-												<td>' + fc.wind.speed + ' m/s</td>\
-												<td>' + (Math.round((fc.temp.current - 273.15) * 10) / 10).toFixed(1) + '°C</td>\
-											</tr>');
-			}
-		}
+		$("#weather-forecast").html('<table>' + day_row + icon_row + temp_row + '</table>');
 	})
 	.fail(function(data) {
 		var msg = $(data.responseText).filter("p").html();

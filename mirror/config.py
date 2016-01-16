@@ -8,7 +8,7 @@ if not os.path.exists(os.path.join(basepath, 'config')):
 	os.makedirs(os.path.join(basepath, 'config'))
 
 def get_user_settings():
-	# Check if config file exists and load it. If it doesn't exist, create it with default settings. If a section doesn't exist, load None
+	# Check if config file exists and load it. If it doesn't exist, create it with default settings.
 	configpath = os.path.join(basepath, 'config', 'settings.cfg')
 	settings = configparser.SafeConfigParser()
 
@@ -29,6 +29,9 @@ def get_user_settings():
 		settings.add_section('calendar')
 		settings.set('calendar', 'url', 'your_calendar_url_here')
 		settings.set('calendar', 'holidays', 'your_calendar_url_here')
+
+		settings.add_section('logger')
+		settings.set('logger', 'config', os.path.join(basepath, 'config', 'loggers.json'))
 
 		settings.add_section('mock')
 		settings.set('mock', 'calendar', os.path.join(basepath, 'testing', 'calendar.txt'))
