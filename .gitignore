@@ -1,3 +1,9 @@
+# Calendars
+mirror/calendars/
+
+# Config files
+*.cfg
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
