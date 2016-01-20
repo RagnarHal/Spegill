@@ -1,40 +1,26 @@
 # -*- coding: utf-8 -*-
+import json
+import datetime
+from ConfigParser import NoSectionError, NoOptionError
+
 import flask
 import icalendar
-import datetime
 import requests
-import json
-from ConfigParser import NoSectionError, NoOptionError
+
 from mirror import app
 from mirror import logger
 from mirror import settings
 
 @app.route('/')
 def index():
-	logger.debug("Received call to Index controller from " + str(flask.request.remote_addr))
+	logger.debug("Received call to Index controller from {0}".format(str(flask.request.remote_addr)))
 	return flask.render_template('index.html')
 
-# Returns today's events in JSON format as a list of events
 @app.route('/events')
 def get_events():
-	logger.debug("Received call to Events controller from " + str(flask.request.remote_addr))
+	logger.debug("Received call to Events controller from {0}".format(str(flask.request.remote_addr)))
 
-	# TODO: Move try/catch block out of controllers.py; doesn't belong here.
-	try:
-		url = settings.get('calendar', 'url')
-		debug = settings.getboolean('app', 'debug')
-	except (NoSectionError, NoOptionError, ValueError) as e:
-		logger.warning("Config parser raised error: {0}. Please check settings.cfg.".format(e.message))
-		flask.abort(500, "Server config file is not valid. Cannot process request. See log for further info.")
-
-	logger.debug("URL parsed from config file: " + str(url))
-	logger.debug("DEBUG parsed from config file: " + str(debug))
-
-	if debug:
-		calendar = fetch_calendar_mock()
-	else:
-		calendar = fetch_calendar(url)
-
+	calendar = fetch_calendar('events')
 	events = []
 	for event in calendar.walk('VEVENT'):
 		start_datetime = event['dtstart'].dt
@@ -54,34 +40,36 @@ def get_events():
 			start_date = start_datetime
 
 		if datetime.date.today() <= start_date:
-			events.append({	'summary' : event['summary'],
-							'description' : event['description'],
-							'location' : location,
-							'start' : str(start_datetime),
-							'end' : str(end_datetime)})
+			events.append(
+				{   'summary' : event['summary'],
+					'description' : event['description'],
+					'location' : location,
+					'start' : str(start_datetime),
+					'end' : str(end_datetime)})
 	logger.info("Calendar request succeeded and yielded {0} events".format(len(events)))
 	return flask.jsonify(results=events)
 
+@app.route('/holidays')
+def get_holidays():
+	logger.debug("Received call to Holidays controller from {0}".format(str(flask.request.remote_addr)))
+
+	calendar = fetch_calendar('holidays')
+	events = []
+	for event in calendar.walk('VEVENT'):
+		if datetime.date.today() <= event['dtstart'].dt:
+			events.append({	'summary' : event['summary'],
+							'start' : str(event['dtstart'].dt),
+							'end' : str(event['dtend'].dt)})
+
+	logger.info("Holiday request succeeded and yielded {0} holidays".format(len(events)))
+	return flask.jsonify(results=events)
+
+
 @app.route('/weather')
 def get_weather_current():
-	logger.debug("Received call to Current Weather controller from " + str(flask.request.remote_addr))
+	logger.debug("Received call to Current Weather controller from {0}".format(str(flask.request.remote_addr)))
 
-	# TODO: Move try/catch block out of controllers.py; doesn't belong here.
-	try:
-		url = settings.get('weather', 'weather')
-		debug = settings.getboolean('app', 'debug')
-	except (NoSectionError, NoOptionError, ValueError) as e:
-		logger.warning("Config parser raised error: {0}. Please check settings.cfg.".format(e.message))
-		flask.abort(500, "Server config file is not valid. Cannot process request. See log for further info.")
-
-	logger.debug("URL parsed from config file: " + str(url))
-	logger.debug("DEBUG parsed from config file: " + str(debug))
-
-	if debug:
-		weather = fetch_weather_current_mock()
-	else:
-		weather = fetch_weather(url)
-
+	weather = fetch_weather('weather')
 	try:
 		result = {
 			"city" : weather['name'],
@@ -110,23 +98,9 @@ def get_weather_current():
 
 @app.route('/forecast')
 def get_weather_forecast():
-	logger.debug("Received call to Forecast Weather controller from " + str(flask.request.remote_addr))
+	logger.debug("Received call to Forecast Weather controller from {0}".format(str(flask.request.remote_addr)))
 
-	try:
-		url = settings.get('weather', 'forecast')
-		debug = settings.getboolean('app', 'debug')
-	except (NoSectionError, NoOptionError, ValueError) as e:
-		logger.warning("Config parser raised error: {0}. Please check settings.cfg.".format(e.message))
-		flask.abort(500, "Server config file is not valid. Cannot process request. See log for further info.")
-
-	logger.debug("URL parsed from config file: " + str(url))
-	logger.debug("DEBUG parsed from config file: " + str(debug))
-
-	if debug:
-		weather = fetch_weather_forecast_mock()
-	else:
-		weather = fetch_weather(url)
-
+	weather = fetch_weather('forecast')
 	try:
 		result = {
 			"city" : weather['city']['name'],
@@ -151,76 +125,58 @@ def get_weather_forecast():
 
 	return flask.jsonify(result)
 
-@app.route('/holidays')
-def get_holidays():
-	logger.debug("Received call to Holidays controller from " + str(flask.request.remote_addr))
+def fetch_calendar(token):
+	logger.debug("Fetching calendar data for token '{0}'".format(str(token)))
 
-	with open(settings.get('calendar', 'holidays')) as f:
-		calendar = icalendar.Calendar.from_ical(f.read())
+	url = settings.get('mock', token) \
+		if settings.getboolean('app', 'debug') and settings.has_section('mock') \
+		else settings.get('calendar', token)
 
-	events = []
-	for event in calendar.walk('VEVENT'):
-		if datetime.date.today() <= event['dtstart'].dt:
-			events.append({	'summary' : event['summary'],
-							'start' : str(event['dtstart'].dt),
-							'end' : str(event['dtend'].dt)})
+	logger.debug("CALENDAR - URL fetched for calendar data was '{0}'".format(str(url)))
 
-	logger.info("Holiday request succeeded and yielded {0} holidays".format(len(events)))
-	return flask.jsonify(results=events)
-
-def fetch_calendar_mock():
-	logger.debug("Fetching mock calendar data")
-
-	with open(settings.get('mock', 'calendar')) as f:
-		return icalendar.Calendar.from_ical(f.read())
-
-def fetch_calendar(url):
-	logger.debug("Fetching real calendar data")
-
-	if url is None:
-		logger.warning("No URL parameter supplied for calendar API, aborting request")
-		flask.abort(400, "No URL parameter supplied")
-
-	try:
-		response = requests.get(url)
-	except requests.exceptions.MissingSchema as e:
-		logger.error("Exception {0} caught while trying to GET calendar. Message: {1}".format(e.__class__, e.message))
-		flask.abort(400, e.message)
-
-	try:
-		calendar = icalendar.Calendar.from_ical(response.content)
-	except ValueError as e:
-		logger.error("Parsing API response failed. Request to external calendar API did not provide a valid iCalendar format.")
-		flask.abort(400, "Not a valid ical calendar.")
+	if url.startswith('http'):
+		logger.debug("CALENDAR - URL '{0}' has http, attempting http request".format(str(url)))
+		try:
+			calendar = icalendar.Calendar.from_ical(requests.get(url).content)
+		except (requests.exceptions.MissingSchema, ValueError) as e:
+			# icalendar throws ValueError on invalid ical format
+			logger.error("Exception {0} caught while trying to fetch calendar. Message: {1}".format(e.__class__, e.message))
+			flask.abort(400, e.message)
+	else:
+		logger.debug("CALENDAR - URL '{0}' had no http, attempting to open file".format(str(url)))
+		try:
+			with open(url, 'rb') as f:
+				calendar = icalendar.Calendar.from_ical(f.read())
+		except IOError as e:
+			logger.error("Exception {0} caught while trying to fetch calendar. Message: {1}".format(e.__class__, e.message))
+			flask.abort(500, e.message)
 
 	return calendar
 
-def fetch_weather_current_mock():
-	logger.debug("Fetching mock data for current weather")
+def fetch_weather(token):
+	logger.debug("Fetching weather data for token '{0}'".format(str(token)))
+	url = settings.get('mock', token) \
+		if settings.getboolean('app', 'debug') and settings.has_section('mock') \
+		else settings.get('weather', token)
 
-	with open(settings.get('mock', 'weather')) as f:
-		return json.load(f)
+	logger.debug("WEATHER - URL fetched for weather data was '{0}'".format(str(url)))
 
-def fetch_weather_forecast_mock():
-	logger.debug("Fetching mock data for forecast weather")
-
-	with open(settings.get('mock', 'forecast')) as f:
-		return json.load(f)
-
-def fetch_weather(url):
-	logger.debug("Fetching real weather data")
-
-	try:
-		response = requests.get(url)
-	except requests.exceptions.MissingSchema as e:
-		logger.error("Exception {0} caught while trying to GET current weather. Message: {1}".format(e.__class__, e.message))
-		flask.abort(400, e.message)
-
-	try:
-		weather = json.loads(response.content)
-	except ValueError as e:
-		logger.error("Exception {0} caught while trying to parse JSON for current weather. Message: {1}. Data: {2}".format(e.__class__, e.message, str(weather_json)))
-		flask.abort(400, e.message)
+	if url.startswith('http'):
+		logger.debug("WEATHER - URL '{0}' has http, attempting http request".format(str(url)))
+		try:
+			weather = json.loads(requests.get(url).content)
+		except (requests.exceptions.missingSchema, ValueError) as e:
+			# json.loads throws ValueError on invalid json string
+			logger.error("Exception {0} caught while trying to fetch weather. Message: {1}".format(e.__class__, e.message))
+			flask.abort(400, e.message)
+	else:
+		logger.debug("WEATHER - URL '{0}' had no http, attempting to open file".format(str(url)))
+		try:
+			with open(url, 'rb') as f:
+				weather = json.load(f)
+		except IOError as e:
+			logger.error("Exception {0} caught while trying to fetch weather. Message: {1}".format(e.__class__, e.message))
+			flask.abort(500, e.message)
 
 	return weather
 
