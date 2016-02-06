@@ -1,7 +1,9 @@
 var calendar = {
-	'event_list' : [],
-	'update_interval' : 60*60*1000,
-	'max_events' : 10
+	event_list : [],
+	holiday_list : [],
+	update_interval : 60*60*1000,
+	max_events : 10,
+	max_holidays : 10
 };
 
 calendar.init = function() {
@@ -13,24 +15,28 @@ calendar.init = function() {
 };
 
 calendar.update = function() {
-	this.update_data(this.update_calendar.bind(this));
-}
+	this.update_data("events", this.update_calendar.bind(this));
+	this.update_data("holidays", this.update_holidays.bind(this));
+};
 
-calendar.update_data = function(callback) {
-	$.get("http://" + location.host + "/events", function(data) {
-		console.log("Got response from Calendar API. Updating calendar event list");
-		this.event_list = data.results.sort(calendar.compare);
-		this.event_list = this.event_list.slice(0, calendar.max_events);
-
-		if (typeof callback == 'function') {
-			callback(this.event_list);
+calendar.update_data = function(which, callback) {
+	// Update the calendar
+	$.get("http://" + location.host + "/" + which, function(data) {
+		console.log("Got response from " + which + " API. Updating " + which + "list");
+		if (which === "events") {
+			this.event_list = data.results.sort(calendar.compare).slice(0, calendar.max_events);
+			if (typeof callback == 'function') {
+				callback(this.event_list);
+			}
 		}
-		else {
-			console.log("Callback function received for updating calendar data is not a function, cannot update calendar.")
+		else if (which === "holidays") {
+			this.holiday_list = data.results.sort(calendar.compare).slice(0, calendar.max_holidays);
+			if (typeof callback == 'function') {
+				callback(this.holiday_list);
+			}
 		}
-	})
-	.fail(function(data) {
-		console.log("Attempt to get calendar data failed");
+	}).fail(function(data) {
+		console.log("Attempt to get " + which + " data failed");
 		var msg = $(data.responseText).filter('p').html();
 		console.log("Error code: " + data.status + ': ' + msg);
 	});
@@ -40,7 +46,7 @@ calendar.update_calendar = function(events) {
 	$("#calendar-error").hide();
 	$("#calendar-list").empty();
 
-	if (events.length == 0) {
+	if (events.length === 0) {
 		$("#calendar-list").html('<tr><td>No upcoming events!</td></tr>');
 	}
 
@@ -58,28 +64,23 @@ calendar.update_calendar = function(events) {
 	}
 };
 
-calendar.update_holidays = function() {
-	$.get("http://" + location.host + "/holidays", function(data) {
-		console.log("Got response from Holidays API. Updating holidays event list");
+calendar.update_holidays = function(holidays) {
+	$("#holidays-error").hide();
+	$("#holidays-list").empty();
 
-		holidays = data.results.sort(calendar.compare).slice(0, 10);
+	if (holidays.length === 0) {
+		$(".holidays .list-header").empty();
+		$("#holidays-list").empty();
+	}
 
-		for (var i in holidays) {
-			h = holidays[i];
-			var date_field = (h.start == clock.today ? 'Today' : normalize_date(h.start));
-			$("#holidays-list").append(	'<tr>\
-											<td>' + h.summary.split('[')[0] + '</td>\
-			  								<td>' + date_field + '</td>\
-		  								</tr>');
-		}
-		
-	})
-	.fail(function(data) {
-		console.log("Attempt to get holidays data failed");
-		var msg = $(data.responseText).filter('p').html();
-		console.log("Error code: " + data.status + ': ' + msg);
+	holidays.forEach(function(holiday) {
+		var date_field = (holiday.start == clock.today ? 'Today' : normalize_date(holiday.start));
+		$("#holidays-list").append(	'<tr>\
+										<td>' + holiday.summary.split('[')[0] + '</td>\
+		  								<td>' + date_field + '</td>\
+	  								</tr>');
 	});
-}
+};
 
 calendar.compare = function (a, b) {
 	if (a.start < b.start) {

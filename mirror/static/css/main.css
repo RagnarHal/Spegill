@@ -1,3 +1,51 @@
+@font-face {
+  font-family: 'roboto';
+  src: url('../font/Roboto-Light.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'roboto';
+  src: url('../font/Roboto-LightItalic.ttf');
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'roboto';
+  src: url('../font/Roboto-Thin.ttf');
+  font-weight: lighter;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'roboto';
+  src: url('../font/Roboto-ThinItalic.ttf');
+  font-weight: lighter;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'roboto';
+  src: url('../font/Roboto-Regular.ttf');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'roboto';
+  src: url('../font/Roboto-Italic.ttf');
+  font-weight: bold;
+  font-style: italic;
+}
+
+html {
+	font-family: 'roboto';
+	font-weight: normal;
+	font-style: normal;
+}
+
 body {
 	background-color: black;
 	color: white;
@@ -11,7 +59,7 @@ body {
 	width: 100%;
 }
 
-.debug {
+.top-banner .debug {
 	margin: auto;
 }
 
@@ -21,15 +69,73 @@ body {
 	top: 15px;
 	left: 0;
 	width: 250px;
-	/*background-color: red;*/
+}
+
+.left-info #datetime {
+	margin-bottom: 20px;
+}
+
+.left-info #datetime #date {
+	font-size: 1.2em;
+	opacity: 0.7;
+}
+
+.left-info #datetime #time {
+	font-size: 2.5em;
+}
+
+.left-info .events {
+	margin-bottom: 25px;
+}
+
+.left-info .holidays {
+	margin-bottom: 25px;
+}
+
+.left-info .events #calendar-list {
+	font-weight: lighter;
 }
 
 .right-info {
-	width: 250px;
 	position: absolute;
+	padding-right: 10px;
 	top: 15px;
 	right: 0;
-	/*background-color: red;*/
+	width: 270px;
+}
+
+.right-info #weather-icon {
+	width: 30%;
+	position: relative;
+	float: left;
+	font-size: 4em;
+	text-align: center;
+}
+
+.right-info #weather-icon #weather-desc {
+	font-size: 30%;
+}
+
+.right-info #weather-temp {
+	width: 70%;
+	font-size: 3em;
+	position: relative;
+	float: right;
+	left: 20px;
+}
+
+.right-info #weather-forecast {
+	opacity: 0.7;
+	position: relative;
+	float: right;
+}
+
+.right-info #weather-forecast table {
+	font-size: 1.4em;
+}
+
+.right-info #weather-forecast table td {
+	padding: 4px;
 }
 
 .list-header {
@@ -37,25 +143,9 @@ body {
 	margin-bottom: 15px;
 }
 
-.events {
-	margin-bottom: 25px;
-}
-
-#datetime #date {
-	font-size: 1.5em;
-}
-
-#datetime #time {
-	font-size: 2.3em;
-}
-
-#datetime {
-	margin-bottom: 20px;
-}
-
 table.fixed {
 	table-layout: fixed;
-	width: 250px;
+	width: 300px;
 }
 
 table.fixed td {
@@ -70,41 +160,12 @@ table.fixed td:nth-of-type(2) {
 	width: 100px;
 }
 
-#weather-icon {
-	width: 30%;
-	float: left;
-	/*background-color: blue;*/
-	font-size: 4em;
-	text-align: center;
-}
-
-#weather-temp {
-	/*background-color: red;*/
-	font-size: 3em;
-}
-
-#weather-forecast {
-	opacity: 0.7;
-	position: relative;
-}
-
-#weather-forecast table {
-	font-size: 1.4em;
-}
-
-#weather-forecast table td {
-	padding: 3px;
-}
-
-#weather-desc {
-	font-size: 30%;
-}
-
-.sup {
+table tr .sup {
 	position: relative;
 	font-size: 60%;
 	top: 2px;
 	line-height: 0;
 	vertical-align: baseline;
 	text-align: center;
+	font-style: italic;
 }

@@ -5,11 +5,11 @@
 		<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}"/>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/weather-icons.css') }}"/>
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/weather-icons-wind.css') }}"/>
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}"/>
 	</head>
 	{% block body %}{% endblock %}
-	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/weather-icons.css') }}"/>
-	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/weather-icons-wind.css') }}"/>
-	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}"/>
 	<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.js') }} "></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='js/calendar.js') }} "></script>
 	<script type="text/javascript" src="{{ url_for('static', filename='js/weather.js') }} "></script>

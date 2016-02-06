@@ -27,7 +27,8 @@ def get_user_settings():
 		settings.set('weather', 'forecast', '${api}/${api_version}/forecast?id=${city_id}$appid=${appid}')
 
 		settings.add_section('calendar')
-		settings.set('calendar', 'url', 'your_calendar_url_here')
+		settings.set('calendar', 'events', 'your_calendar_url_here')
+		settings.set('calendar', 'display_holidays', 'false')
 		settings.set('calendar', 'holidays', 'your_calendar_url_here')
 
 		settings.add_section('logger')

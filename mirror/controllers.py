@@ -53,6 +53,9 @@ def get_events():
 def get_holidays():
 	logger.debug("Received call to Holidays controller from {0}".format(str(flask.request.remote_addr)))
 
+	if settings.getboolean('calendar', 'hide_holidays'):
+		return flask.jsonify(results=[])
+
 	calendar = fetch_calendar('holidays')
 	events = []
 	for event in calendar.walk('VEVENT'):
